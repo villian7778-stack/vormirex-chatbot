@@ -1,0 +1,247 @@
+/* body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+.chat-container {
+    width: 400px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.chat-container h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+#chat-box {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fafafa;
+    border-radius: 5px;
+}
+
+.user {
+    text-align: right;
+    margin: 8px 0;
+    padding: 8px 10px;
+    background: #e3f2fd;
+    border-radius: 5px;
+    color: #0066cc;
+    word-wrap: break-word;
+}
+
+.bot {
+    text-align: left;
+    margin: 8px 0;
+    padding: 8px 10px;
+    background: #e8f5e9;
+    border-radius: 5px;
+    color: #1b5e20;
+    word-wrap: break-word;
+}
+
+.bot.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 5px;
+}
+
+.course-button {
+    padding: 10px 15px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.course-button:hover {
+    background: #1976D2;
+}
+
+.course-button:active {
+    background: #1565C0;
+}
+
+.input-box {
+    display: flex;
+    gap: 5px;
+}
+
+#user-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#user-input:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+}
+
+.input-box button {
+    padding: 10px 20px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.input-box button:hover {
+    background: #1976D2;
+}
+ */
+
+
+body {
+    background: radial-gradient(circle at top, #0f2027, #000);
+    font-family: Arial, sans-serif;
+}
+
+.chat-container {
+    width: 380px;
+    height: 560px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(180deg, #0c1323, #060b18);
+    border-radius: 16px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    padding: 14px;
+    color: #fff;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.chat-header small {
+    color: #4caf50;
+    margin-left: 8px;
+}
+
+#chat-box {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.user {
+    align-self: flex-end;
+    background: #1e88e5;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin: 8px 0;
+    max-width: 80%;
+    text-align: right;
+}
+
+.bot {
+    background: #1c2236;
+    color: #e0e0e0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin: 8px 0;
+    max-width: 85%;
+}
+
+.input-box {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.input-box input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+}
+
+.input-box button {
+    margin-left: 8px;
+    padding: 10px 14px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: #1e88e5;
+    color: white;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.course-button {
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #263cff;
+    color: white;
+    cursor: pointer;
+}
+
+.course-button:hover {
+    background: #1e2bb8;
+}
+
+/* Typing animation */
+.typing {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+}
+
+.typing span {
+    width: 8px;
+    height: 8px;
+    background: #4fc3f7;
+    border-radius: 50%;
+    animation: blink 1.4s infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+    0% { opacity: .2; }
+    20% { opacity: 1; }
+    100% { opacity: .2; }
+}
+
+

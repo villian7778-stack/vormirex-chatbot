@@ -1,0 +1,225 @@
+cd D:\Vormirex\vormirex-chatbot
+conda activate vormirex-chatbot
+uvicorn backend.app:app --reload
+cd frontend
+python -m http.server 5500
+
+
+
+python -m http.server 5500
+
+
+
+
+import re
+import difflib
+import requests
+from backend.google_sheets import save_lead
+from backend.config import CONTACT_NUMBER, OPENROUTER_API_KEY, OPENROUTER_MODEL
+
+# =====================================================
+# In-memory session storage
+# =====================================================
+SESSIONS = {}
+
+# =====================================================
+# OpenRouter LLM fallback (SAFE answers only)
+# =====================================================
+def llm_fallback(question: str) -> str:
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://vormirex.ai",
+        "X-Title": "Vormirex Chatbot"
+    }
+
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are vormi, an AI education assistant for Vormirex.\n"
+                    "Answer politely, clearly, and safely.\n"
+                    "Do NOT give fee details, discounts, or guarantees.\n"
+                    "Encourage speaking to a counselor when needed."
+                )
+            },
+            {"role": "user", "content": question}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 180
+    }
+
+    try:
+        r = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+        return r.json()["choices"][0]["message"]["content"]
+    except Exception:
+        return "That’s a great question 😊 Our counselor can explain this better. Please share your details or call us."
+
+# =====================================================
+# Utilities
+# =====================================================
+def extract_phone(text):
+    digits = re.sub(r"\D", "", text)
+    match = re.search(r"\d{7,13}", digits)
+    return match.group() if match else None
+
+def is_valid_phone(phone):
+    return bool(re.fullmatch(r"[6-9]\d{9}", phone))
+
+def extract_name(text):
+    text = re.sub(r"\d{7,13}", "", text)
+    text = re.sub(r"[^a-zA-Z ]", "", text).strip()
+    return text.title() if text and len(text.split()) <= 3 else None
+
+# =====================================================
+# Chatbot Main Logic
+# =====================================================
+def chatbot_reply(user_id: str, user_message: str):
+    msg = user_message.lower().strip()
+
+    # Create session
+    if user_id not in SESSIONS:
+        SESSIONS[user_id] = {
+            "name": None,
+            "phone": None,
+            "lead_saved": False,
+            "course_selected": None,
+            "waiting_for_other_course": False
+        }
+
+    session = SESSIONS[user_id]
+
+    # =====================================================
+    # 1️⃣ OTHER COURSE FLOW (TOP PRIORITY)
+    # =====================================================
+    if session["waiting_for_other_course"]:
+        course = user_message.strip()
+
+        if len(course) < 3:
+            return {"reply": "Please type a valid course name (e.g. Web Development, AI, Cloud)."}
+
+        session["course_selected"] = course
+        session["waiting_for_other_course"] = False
+
+        save_lead(
+            name=session["name"],
+            phone=session["phone"],
+            course=course,
+            source="Chatbot"
+        )
+
+        return {
+            "reply": (
+                f"Thank you 🙏 We've noted your interest in *{course}*.\n\n"
+                "Our counselor will contact you shortly with complete details 😊"
+            )
+        }
+
+    # =====================================================
+    # 2️⃣ GREETING
+    # =====================================================
+    if msg in ["hi", "hello", "hey"] and not session["lead_saved"]:
+        return {
+            "reply": (
+                "Hi 👋 I’m *vormi*, your AI education assistant from *Vormirex*.\n\n"
+                "👉 Please share your *Name* and *Phone Number* to continue."
+            )
+        }
+
+    # =====================================================
+    # 3️⃣ LEAD CAPTURE
+    # =====================================================
+    phone = extract_phone(user_message)
+    name = extract_name(user_message)
+
+    if name and not session["name"]:
+        session["name"] = name
+
+    if phone and is_valid_phone(phone) and not session["phone"]:
+        session["phone"] = phone
+
+    if not session["name"]:
+        return {"reply": "Thanks 😊 Please share your *Name*."}
+
+    if not session["phone"]:
+        return {"reply": f"Thanks *{session['name']}* 😊 Please share your *Phone Number*."}
+
+    # =====================================================
+    # 4️⃣ LEAD CAPTURED → SHOW COURSE BUTTONS
+    # =====================================================
+    if not session["lead_saved"]:
+        session["lead_saved"] = True
+        return {
+            "reply": f"Thank you *{session['name']}* 🙏 Which course are you interested in?",
+            "buttons": [
+                {"id": "data_science", "label": "📘 Data Science"},
+                {"id": "cyber_security", "label": "🔐 Cyber Security"},
+                {"id": "other", "label": "❓ Other"}
+            ]
+        }
+
+    # =====================================================
+    # 5️⃣ COURSE SELECTION
+    # =====================================================
+    if msg in ["data science", "data_science"]:
+        session["course_selected"] = "Data Science"
+        save_lead(session["name"], session["phone"], "Data Science", "Chatbot")
+        return {
+            "reply": (
+                "📘 *Data Science Course*\n\n"
+                "✔ Python, ML, AI\n"
+                "✔ Real-world projects\n"
+                "✔ Interview preparation\n"
+                "✔ Beginner friendly\n\n"
+                "Ask me about syllabus, jobs, or learning style 😊"
+            )
+        }
+
+    if msg in ["cyber security", "cyber_security"]:
+        session["course_selected"] = "Cyber Security"
+        save_lead(session["name"], session["phone"], "Cyber Security", "Chatbot")
+        return {
+            "reply": (
+                "🔐 *Cyber Security Course*\n\n"
+                "✔ Ethical Hacking\n"
+                "✔ Practical labs\n"
+                "✔ Certification guidance\n"
+                "✔ Interview preparation\n\n"
+                "Ask me about scope or certifications 😊"
+            )
+        }
+
+    if msg == "other":
+        session["waiting_for_other_course"] = True
+        return {
+            "reply": (
+                "Great choice 🎓\n\n"
+                "Please type the *course name* you’re interested in.\n"
+                "Example: Web Development, AI, Cloud Computing"
+            )
+        }
+
+    # =====================================================
+    # 6️⃣ FEES → HUMAN ONLY
+    # =====================================================
+    if any(k in msg for k in ["fee", "price", "cost", "payment", "emi", "discount"]):
+        return {
+            "reply": (
+                "💰 Fee details are explained personally by our counselor.\n\n"
+                f"📞 Please contact: *{CONTACT_NUMBER}*"
+            )
+        }
+
+    # =====================================================
+    # 7️⃣ LLM FALLBACK (UNKNOWN QUESTIONS)
+    # =====================================================
+    return {
+        "reply": llm_fallback(user_message)
+    }

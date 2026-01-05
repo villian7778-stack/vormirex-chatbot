@@ -1,0 +1,22 @@
+vormirex-chatbot/
+│
+├── backend/
+│   ├── app.py
+│   ├── config.py
+│   ├── chatbot.py
+│   ├── intent.py
+│   ├── prompts.py
+│   ├── google_sheets.py
+│   └── models.py
+│
+├── credentials/
+│   └── service_account.json
+│
+├── frontend/
+│   ├── index.html
+│   ├── chat.js
+│   └── style.css
+│
+├── .env
+├── requirements.txt
+└── README.md
